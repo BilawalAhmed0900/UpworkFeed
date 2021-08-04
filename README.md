@@ -6,7 +6,7 @@
 
   Open `background.js` and you can change the following variable to your need.
   Example. I have set the keywork to "Flutter" and timeout to 1 Minute
-  ![Image]("/asset/screenshot.png")
+  ![Image](/asset/screenshot.png)
 
 ## Installation
 
