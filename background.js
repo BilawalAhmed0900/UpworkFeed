@@ -2,8 +2,8 @@ const sUsrAg = window.navigator.userAgent;
 const isFirefox = (sUsrAg.indexOf("Chrome") === -1);
 const browserVar = (!isFirefox) ? chrome : browser;
 
-const keywords = ["Flutter"];
-const intervalDurationMilli = 1 * 60 * 1000; // 1 Minute
+const keywords = [];
+const intervalDurationMilli = 1 * 30 * 1000; // 1 Minute
 
 const upworkHomepageLocation = "https://www.upwork.com/ab/find-work/recommended";
 const selfCreatedIds = [];
@@ -65,9 +65,12 @@ function gotHTML({id, html}) {
 
   for (const job of jobs) {
     let has_any = false;
+    if (keywords.length === 0) {
+      has_any = true;
+    }
 
     /*
-      When all tags have been found, we show notification only
+      When any tags has been found, we show notification only
       if we have not shown before
     */
     for (const search_tag of keywords) {

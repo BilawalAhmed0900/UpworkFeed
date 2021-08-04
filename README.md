@@ -11,3 +11,8 @@
 ## Installation
 
   No packed file, load unpacked in Chrome/Firefox
+
+## Bugs
+
+  Sometimes, Upwork doesn't give it data, you can see it in the Error pager
+  Refresh yourself Upwork main page
