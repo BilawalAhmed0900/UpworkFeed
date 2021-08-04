@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "Upwork Extension",
+  "description": "Keep trying for the job you want",
+  "version": "1.2.1",
+  "permissions": [
+    "tabs", "activeTab", "notifications"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "content_scripts": [{
+    "matches": ["https://www.upwork.com/ab/find-work/", "https://www.upwork.com/ab/find-work/recommended"],
+    "js": ["content.js"]
+  }]
+}
