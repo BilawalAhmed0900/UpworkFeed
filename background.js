@@ -3,7 +3,7 @@ const isFirefox = (sUsrAg.indexOf("Chrome") === -1);
 const browserVar = (!isFirefox) ? chrome : browser;
 
 const keywords = [];
-const intervalDurationMilli = 1 * 30 * 1000; // 1 Minute
+const intervalDurationMilli = 5 * 30 * 1000; // 5 Minutes
 
 const upworkHomepageLocation = "https://www.upwork.com/ab/find-work/recommended";
 const selfCreatedIds = [];
@@ -26,7 +26,7 @@ function gotHTML({id, html}) {
   */
   const elem = dom.getElementById("feed-jobs") || dom.getElementById("feed-jobs-responsive") || null;
   if (elem === null) {
-    console.warn("Jobs feed empty");
+    console.log(html);
     return;
   }
 
@@ -120,7 +120,21 @@ browserVar.tabs.onUpdated.addListener(function(tabID, changeInfo, _tab) {
   if (selfCreatedIds.includes(tabID) && changeInfo.status === "complete") {
     /*
       Remove it from list of owned ids here, tab will be removed once, html is retrieved
+
+      A problem arrives is that, upwork page has angular get in it
+      which depends upon the connection, and onUpdate doesn't get
+      called upon that retrieval.
+
+      What I can do is to add 5 sec wait here, until I find a solution to this
     */
+   
+    /*
+    setTimeout(function() {
+      selfCreatedIds.splice(selfCreatedIds.indexOf(tabID), 1);
+      browserVar.tabs.sendMessage(tabID, {id: tabID, text: "report_back"}, gotHTML);
+    }, 5000);
+    */
+
     selfCreatedIds.splice(selfCreatedIds.indexOf(tabID), 1);
     browserVar.tabs.sendMessage(tabID, {id: tabID, text: "report_back"}, gotHTML);
   }

@@ -14,5 +14,4 @@
 
 ## Bugs
 
-  Sometimes, Upwork doesn't give it data, you can see it in the Error page.
-  Refresh yourself Upwork main page or set timeout to 30 sec or less.
+  Currently none.
