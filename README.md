@@ -10,7 +10,7 @@
 
 ## Installation
 
-  No packed file, load unpacked in Chrome/Firefox
+  Currently no signed packed file, load unpacked in Chrome/Firefox
 
 ## Bugs
 

@@ -1,9 +1,10 @@
 const sUsrAg = window.navigator.userAgent;
 const isFirefox = (sUsrAg.indexOf("Chrome") === -1);
 const browserVar = (!isFirefox) ? chrome : browser;
+const PORT_UUID = "3de05e6b-e5b2-4a07-b883-6c0a520597ef";
 
 const keywords = [];
-const intervalDurationMilli = 5 * 30 * 1000; // 5 Minutes
+const intervalDurationMilli = 5 * 60 * 1000; // 5 Minutes
 
 const upworkHomepageLocation = "https://www.upwork.com/ab/find-work/recommended";
 const selfCreatedIds = [];
@@ -112,32 +113,33 @@ function intervalFunction() {
   }, callback);
 }
 
-browserVar.tabs.onUpdated.addListener(function(tabID, changeInfo, _tab) {
-  /*
-    If the tabId is the one we own and it has successfully loaded, send
-    message to content script so that it can give back id and html to gotHTML
-  */
-  if (selfCreatedIds.includes(tabID) && changeInfo.status === "complete") {
+/*
+  Content script can communicate with us
+*/
+browserVar.runtime.onConnect.addListener(function(port) {
+  // Simple verification
+  console.assert(port.name === PORT_UUID);
+  port.onMessage.addListener(function(msg, sendingPort) {
+    if (!selfCreatedIds.includes(sendingPort.sender.tab.id)) {
+      port.disconnect();
+      return;
+    }
+
     /*
-      Remove it from list of owned ids here, tab will be removed once, html is retrieved
+      Content script can send two message, first give_me_tab_id
+      and then sent_stuff, which mark end of communication
 
-      A problem arrives is that, upwork page has angular get in it
-      which depends upon the connection, and onUpdate doesn't get
-      called upon that retrieval.
-
-      What I can do is to add 5 sec wait here, until I find a solution to this
+      Now this whole communication can be simplified to just sent_stuff,
+      but I need some chills :)
     */
-   
-    /*
-    setTimeout(function() {
-      selfCreatedIds.splice(selfCreatedIds.indexOf(tabID), 1);
-      browserVar.tabs.sendMessage(tabID, {id: tabID, text: "report_back"}, gotHTML);
-    }, 5000);
-    */
-
-    selfCreatedIds.splice(selfCreatedIds.indexOf(tabID), 1);
-    browserVar.tabs.sendMessage(tabID, {id: tabID, text: "report_back"}, gotHTML);
-  }
+    if (msg.text === "give_me_tab_id") {
+      port.postMessage({text: "sent_tab_id", tabID: sendingPort.sender.tab.id});
+    } else if (msg.text === "sent_stuff" && selfCreatedIds.includes(msg.id)) {
+      selfCreatedIds.splice(selfCreatedIds.indexOf(msg.id), 1);
+      gotHTML({id: msg.id, html: msg.html});
+      port.disconnect();
+    }
+  });
 });
 
 browserVar.runtime.onInstalled.addListener(function() {

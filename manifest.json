@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "UpworkFeed",
-  "description": "Keep you in the loop",
-  "version": "1.2.3",
+  "description": "Notify when job of configured keyword in posted on Upwork",
+  "version": "1.4.7",
   "permissions": [
     "tabs", "activeTab", "notifications"
   ],
@@ -11,7 +11,9 @@
     "persistent": true
   },
   "content_scripts": [{
-    "matches": ["https://www.upwork.com/ab/find-work/", "https://www.upwork.com/ab/find-work/recommended"],
+    "matches": ["https://www.upwork.com/ab/find-work/",
+      "https://www.upwork.com/ab/find-work/high-chance",
+      "https://www.upwork.com/ab/find-work/recommended"],
     "js": ["content.js"]
   }]
 }
