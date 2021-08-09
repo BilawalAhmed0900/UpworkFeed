@@ -142,6 +142,16 @@ browserVar.runtime.onConnect.addListener(function(port) {
   });
 });
 
+/*
+  If error occured due to connection lose or anything, we remove the tab
+*/
+browserVar.webNavigation.onErrorOccurred.addListener(function(details) {
+  if (selfCreatedIds.includes(details.tabId)) {
+    selfCreatedIds.splice(details.tabId, 1);
+    browserVar.tabs.remove(details.tabId);
+  }
+});
+
 browserVar.runtime.onInstalled.addListener(function() {
   if (workerID !== null) {
     clearInterval(workerID);

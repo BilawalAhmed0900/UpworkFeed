@@ -2,9 +2,9 @@
   "manifest_version": 2,
   "name": "UpworkFeed",
   "description": "Notify when job of configured keyword in posted on Upwork",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "permissions": [
-    "tabs", "activeTab", "notifications"
+    "tabs", "activeTab", "notifications", "webNavigation"
   ],
   "background": {
     "scripts": ["background.js"],
