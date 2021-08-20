@@ -2,7 +2,6 @@ const sUsrAg = window.navigator.userAgent;
 const isFirefox = (sUsrAg.indexOf("Chrome") === -1);
 const browserVar = (!isFirefox) ? chrome : browser;
 const PORT_UUID = "3de05e6b-e5b2-4a07-b883-6c0a520597ef";
-debugger;
 
 /*
   A recursive timeout function that will check for

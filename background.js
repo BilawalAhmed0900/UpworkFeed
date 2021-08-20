@@ -1,10 +1,14 @@
 const sUsrAg = window.navigator.userAgent;
 const isFirefox = (sUsrAg.indexOf("Chrome") === -1);
 const browserVar = (!isFirefox) ? chrome : browser;
-const PORT_UUID = "3de05e6b-e5b2-4a07-b883-6c0a520597ef";
+const CONTENT_SCRIPT_UUID = "3de05e6b-e5b2-4a07-b883-6c0a520597ef";
+const POPUP_SCRIPT_UUID = "179cb5b7-545a-4f59-b6ec-33c6607970e8";
 
-const keywords = [];
-const intervalDurationMilli = 5 * 60 * 1000; // 5 Minutes
+/*
+  These are the default values that is set at first time
+*/
+let keywords = [];
+let intervalDurationMilli = 5 * 60 * 1000;
 
 const upworkHomepageLocation = "https://www.upwork.com/ab/find-work/recommended";
 const selfCreatedIds = [];
@@ -27,7 +31,6 @@ function gotHTML({id, html}) {
   */
   const elem = dom.getElementById("feed-jobs") || dom.getElementById("feed-jobs-responsive") || null;
   if (elem === null) {
-    console.log(html);
     return;
   }
 
@@ -114,32 +117,71 @@ function intervalFunction() {
 }
 
 /*
+  Get storage values with default being empty array and 5 minutes
+*/
+browserVar.storage.sync.get({"keywords": []}, function (value) {
+  keywords = value.keywords;
+});
+
+browserVar.storage.sync.get({"interval": 5 * 60 * 1000}, function (value) {
+  intervalDurationMilli = value.interval;
+});
+
+/*
   Content script can communicate with us
 */
 browserVar.runtime.onConnect.addListener(function(port) {
-  // Simple verification
-  console.assert(port.name === PORT_UUID);
-  port.onMessage.addListener(function(msg, sendingPort) {
-    if (!selfCreatedIds.includes(sendingPort.sender.tab.id)) {
-      port.disconnect();
-      return;
-    }
+  if (port.name === CONTENT_SCRIPT_UUID) {
+    port.onMessage.addListener(function(msg, sendingPort) {
+      if (!selfCreatedIds.includes(sendingPort.sender.tab.id)) {
+        port.disconnect();
+        return;
+      }
+  
+      /*
+        Content script can send two message, first give_me_tab_id
+        and then sent_stuff, which mark end of communication
+  
+        Now this whole communication can be simplified to just sent_stuff,
+        but I need some chills :)
+      */
+      if (msg.text === "give_me_tab_id") {
+        port.postMessage({text: "sent_tab_id", tabID: sendingPort.sender.tab.id});
+      } else if (msg.text === "sent_stuff" && selfCreatedIds.includes(msg.id)) {
+        selfCreatedIds.splice(selfCreatedIds.indexOf(msg.id), 1);
+        gotHTML({id: msg.id, html: msg.html});
+        port.disconnect();
+      }
+    });
+  } else if (port.name === POPUP_SCRIPT_UUID) {
+    port.onMessage.addListener(function (msg, sendingPort) {
+      /*
+        Communication with popup is just, getting 2 variables,
+        keyword array and interval duration, and setting them
+      */
+      if (msg.text === "give_me_keywords") {
+        port.postMessage({text: "sent_keywords", keywords: keywords});
+      } else if (msg.text === "update_keywords") {
+        keywords = msg.keywords;
+        browserVar.storage.sync.set({"keywords": keywords}, function() { });
+      } else if (msg.text === "give_me_interval") {
+        port.postMessage({text: "sent_interval", interval: intervalDurationMilli});
+      } else if (msg.text === "update_interval") {
+        intervalDurationMilli = msg.interval;
+        browserVar.storage.sync.set({"interval": intervalDurationMilli}, function() { });
 
-    /*
-      Content script can send two message, first give_me_tab_id
-      and then sent_stuff, which mark end of communication
-
-      Now this whole communication can be simplified to just sent_stuff,
-      but I need some chills :)
-    */
-    if (msg.text === "give_me_tab_id") {
-      port.postMessage({text: "sent_tab_id", tabID: sendingPort.sender.tab.id});
-    } else if (msg.text === "sent_stuff" && selfCreatedIds.includes(msg.id)) {
-      selfCreatedIds.splice(selfCreatedIds.indexOf(msg.id), 1);
-      gotHTML({id: msg.id, html: msg.html});
-      port.disconnect();
-    }
-  });
+        /*
+          Restart worker with new interval
+        */
+        if (workerID !== null) {
+          clearInterval(workerID);
+          workerID = null;
+        }
+        
+        workerID = setInterval(intervalFunction, intervalDurationMilli);
+      }
+    });
+  }
 });
 
 /*
