@@ -91,7 +91,7 @@ function gotHTML({id, html}) {
 
     if (has_any) {
       if (!alreadySent.includes(job["name"])) {
-        browserVar.notifications.create({"title": job["name"], "type": "basic", "message": "", "iconUrl": "asset/img.png"});
+        browserVar.notifications.create({"title": job["name"], "type": "basic", "message": "", "iconUrl": "assets/icon128.png"});
         alreadySent.push(job["name"]);
       }
     }
